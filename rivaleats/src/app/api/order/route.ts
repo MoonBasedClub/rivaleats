@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getServiceRoleClient } from "@/lib/supabase/server";
+import { getAnonClient, getServiceRoleClient } from "@/lib/supabase/server";
+import { logApiEvent } from "@/lib/monitoring";
 
 const orderSchema = z.object({
   fullName: z.string().min(2),
@@ -55,15 +56,22 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = getServiceRoleClient();
+  const supabase = getServiceRoleClient() ?? getAnonClient();
   if (!supabase) {
+    const status = 202;
+    logApiEvent({
+      route: "/api/order",
+      status,
+      message: "Dry-run order: Supabase env vars missing",
+      meta: { email: order.email },
+    });
     return NextResponse.json(
       {
         ok: true,
         message:
           "Supabase environment variables not set. Order accepted in dry-run mode.",
       },
-      { status: 202 }
+      { status }
     );
   }
 
@@ -95,11 +103,24 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    logApiEvent({
+      route: "/api/order",
+      status: 500,
+      message: "Unable to save order",
+      details: error.message,
+      meta: { email: order.email },
+    });
     return NextResponse.json(
       { error: "Unable to save order", details: error.message },
       { status: 500 }
     );
   }
 
+  logApiEvent({
+    route: "/api/order",
+    status: 201,
+    message: "Order saved",
+    meta: { email: order.email, fulfillment: order.fulfillment },
+  });
   return NextResponse.json({ ok: true }, { status: 201 });
 }

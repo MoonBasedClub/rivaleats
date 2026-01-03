@@ -19,22 +19,22 @@ const steps = [
   },
   {
     title: "Checkout without the chaos",
-    body: "Submit the weekly package. We’ll confirm, coordinate, and handle payment instructions.",
+    body: "Submit the weekly package. We'll confirm, coordinate, and handle payment instructions.",
   },
 ];
 
 const faqs = [
   {
     q: "When do orders lock?",
-    a: "Friday 7pm ET. After that, we’ll prompt you to schedule for the next delivery window.",
+    a: "Friday 7pm ET. After that, we'll prompt you to schedule for the next delivery window.",
   },
   {
     q: "Where do you deliver?",
-    a: "Broward is standard. Outside Broward may carry an additional charge—address check happens in the order form.",
+    a: "Broward is standard. Outside Broward may carry an additional charge; address check happens in the order form.",
   },
   {
     q: "What about payment?",
-    a: "No online payments yet. Submit the order and we’ll share payment instructions in the confirmation.",
+    a: "No online payments yet. Submit the order and we'll share payment instructions in the confirmation.",
   },
 ];
 
@@ -54,7 +54,7 @@ export default function Home() {
             </h1>
             <p className="text-lg text-muted sm:text-xl">
               Elevated meals, zero fuss. Lock in the weekly package, choose
-              delivery or pickup, and set your notes—so every plate lands the way
+              delivery or pickup, and set your notesso every plate lands the way
               you like it.
             </p>
             <div className="flex flex-wrap items-center gap-3">
@@ -91,10 +91,10 @@ export default function Home() {
             <div className="h-full rounded-3xl border border-border bg-ink px-6 py-8 text-cream shadow-2xl shadow-brand-red/15">
               <p className="display text-xl font-semibold">Delivery & Pickup</p>
               <ul className="mt-4 space-y-3 text-sm leading-relaxed text-[#dfd8ca]">
-                <li>• Delivery windows: Sunday or Monday (+$10 delivery)</li>
-                <li>• Pickup: skip the delivery fee</li>
-                <li>• Outside Broward? We’ll flag an additional charge before you submit.</li>
-                <li>• After Friday 7pm ET, we schedule your order for the next window.</li>
+                <li>- Delivery windows: Sunday or Monday (+$10 delivery)</li>
+                <li>- Pickup: skip the delivery fee</li>
+                <li>- Outside Broward? We'll flag an additional charge before you submit.</li>
+                <li>- After Friday 7pm ET, we schedule your order for the next window.</li>
               </ul>
               <div className="mt-8 rounded-2xl bg-charcoal/70 p-4 text-sm text-[#f3e9d9]">
                 <p className="font-semibold text-white">Weekly menu drop</p>
@@ -155,13 +155,13 @@ export default function Home() {
           </h3>
           <p className="mt-2 text-sm text-muted">
             Delivery fee is $10 inside our standard Broward zone. Outside
-            Broward, we’ll show you an additional charge before you submit—no
+            Broward, well show you an additional charge before you submitno
             surprises.
           </p>
           <div className="mt-4 space-y-2 text-sm text-muted">
-            <p>• Delivery windows: Sunday or Monday</p>
-            <p>• Cutoff: Friday 7pm ET</p>
-            <p>• Address check + dietary notes captured in the form</p>
+            <p> Delivery windows: Sunday or Monday</p>
+            <p> Cutoff: Friday 7pm ET</p>
+            <p> Address check + dietary notes captured in the form</p>
           </div>
         </div>
         <div className="rounded-2xl bg-cream p-5">

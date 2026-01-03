@@ -75,20 +75,20 @@ alter table public.orders enable row level security;
 create policy "Public read menu items" on public.menu_items
   for select using (true);
 
-create policy "Allow menu inserts via service role" on public.menu_items
-  for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+create policy "Authenticated can manage menu" on public.menu_items
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 create policy "Public can submit signups" on public.menu_signups
   for insert with check (true);
 
-create policy "Service role can manage signups" on public.menu_signups
-  for all using (auth.role() = 'service_role');
+create policy "Authenticated can manage signups" on public.menu_signups
+  for all using (auth.role() = 'authenticated');
 
 create policy "Public can submit orders" on public.orders
   for insert with check (true);
 
-create policy "Service role can read orders" on public.orders
-  for select using (auth.role() = 'service_role');
+create policy "Authenticated can read orders" on public.orders
+  for select using (auth.role() = 'authenticated');
 
 -- Storage bucket for menu images (optional)
 -- Execute once:

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getServiceRoleClient } from "@/lib/supabase/server";
+import { getAnonClient, getServiceRoleClient } from "@/lib/supabase/server";
+import { logApiEvent } from "@/lib/monitoring";
 
 const subscribeSchema = z.object({
   email: z.string().email(),
@@ -31,15 +32,22 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = getServiceRoleClient();
+  const supabase = getServiceRoleClient() ?? getAnonClient();
   if (!supabase) {
+    const status = 202;
+    logApiEvent({
+      route: "/api/subscribe",
+      status,
+      message: "Dry-run subscribe: Supabase env vars missing",
+      meta: { email: data.email },
+    });
     return NextResponse.json(
       {
         ok: true,
         message:
           "Supabase environment variables not set. Subscription accepted in dry-run mode.",
       },
-      { status: 202 }
+      { status }
     );
   }
 
@@ -52,11 +60,24 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    logApiEvent({
+      route: "/api/subscribe",
+      status: 500,
+      message: "Unable to save signup",
+      details: error.message,
+      meta: { email: data.email },
+    });
     return NextResponse.json(
       { error: "Unable to save signup", details: error.message },
       { status: 500 }
     );
   }
 
+  logApiEvent({
+    route: "/api/subscribe",
+    status: 201,
+    message: "Signup saved",
+    meta: { email: data.email },
+  });
   return NextResponse.json({ ok: true }, { status: 201 });
 }
