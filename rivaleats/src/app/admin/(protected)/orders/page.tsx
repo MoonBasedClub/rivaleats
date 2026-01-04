@@ -36,7 +36,7 @@ async function fetchOrders(): Promise<Order[]> {
 
 export default async function AdminOrdersPage() {
   const orders = await fetchOrders();
-  const serviceKeyMissing = orders.length === 0;
+  const serviceKeyMissing = !process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   return (
     <div className="space-y-4">

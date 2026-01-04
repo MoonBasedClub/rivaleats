@@ -24,6 +24,55 @@ async function fetchMenuItems(): Promise<MenuItem[]> {
   return data ?? [];
 }
 
+async function updateMenuItem(formData: FormData) {
+  "use server";
+  const supabase = getServiceRoleClient();
+  if (!supabase) return;
+
+  const id = formData.get("id")?.toString();
+  if (!id) return;
+
+  const name = formData.get("name")?.toString().trim();
+  const description = formData.get("description")?.toString().trim();
+  const section = formData.get("section")?.toString().trim();
+  const priceRaw = formData.get("price")?.toString().trim();
+  const tagsRaw = formData.get("tags")?.toString().trim();
+
+  if (!name || !description || !section) return;
+  const price = priceRaw ? Number(priceRaw) : null;
+  const tags =
+    tagsRaw
+      ?.split(",")
+      .map((t) => t.trim())
+      .filter(Boolean) ?? null;
+
+  await supabase
+    .from("menu_items")
+    .update({
+      name,
+      description,
+      section,
+      price,
+      tags,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  revalidatePath("/admin/menu");
+}
+
+async function deleteMenuItem(formData: FormData) {
+  "use server";
+  const supabase = getServiceRoleClient();
+  if (!supabase) return;
+
+  const id = formData.get("id")?.toString();
+  if (!id) return;
+
+  await supabase.from("menu_items").delete().eq("id", id);
+  revalidatePath("/admin/menu");
+}
+
 async function addMenuItem(formData: FormData) {
   "use server";
   const supabase = getServiceRoleClient();
@@ -57,7 +106,7 @@ async function addMenuItem(formData: FormData) {
 
 export default async function AdminMenuPage() {
   const items = await fetchMenuItems();
-  const serviceKeyMissing = items.length === 0;
+  const serviceKeyMissing = !process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   return (
     <div className="space-y-6">
@@ -145,44 +194,76 @@ export default async function AdminMenuPage() {
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {items.map((item) => (
-            <div
+            <form
               key={item.id}
-              className="rounded-2xl border border-border p-4 shadow-sm"
+              className="space-y-3 rounded-2xl border border-border p-4 shadow-sm"
+              action={updateMenuItem}
             >
+              <input type="hidden" name="id" value={item.id} />
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-ink px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cream">
-                    {item.section}
-                  </span>
+                  <select
+                    name="section"
+                    defaultValue={item.section}
+                    className="rounded-full border border-border bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-charcoal outline-none focus:border-brand-red"
+                  >
+                    <option value="breakfast">Breakfast</option>
+                    <option value="dinner">Dinner</option>
+                  </select>
                   {item.price !== null && (
                     <span className="text-sm font-semibold text-brand-red">
                       ${item.price.toFixed(2)}
                     </span>
                   )}
-                </div>
-                {item.updated_at && (
-                  <span className="text-xs text-muted">
-                    Updated {new Date(item.updated_at).toLocaleDateString()}
-                  </span>
-                )}
-              </div>
-              <p className="mt-2 text-lg font-semibold text-charcoal">
-                {item.name}
-              </p>
-              <p className="text-sm text-muted">{item.description}</p>
-              {item.tags && item.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-soft-card px-3 py-1 text-xs font-semibold text-charcoal"
-                    >
-                      {tag}
+                  {item.updated_at && (
+                    <span className="text-xs text-muted">
+                      Updated {new Date(item.updated_at).toLocaleDateString()}
                     </span>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
+                <button
+                  formAction={deleteMenuItem}
+                  className="rounded-full border border-border px-3 py-1 text-xs font-semibold text-muted transition hover:border-brand-red hover:text-brand-red"
+                >
+                  Delete
+                </button>
+              </div>
+              <input
+                name="name"
+                defaultValue={item.name}
+                className="w-full rounded-xl border border-border px-3 py-2 text-sm outline-none focus:border-brand-red"
+              />
+              <textarea
+                name="description"
+                defaultValue={item.description}
+                rows={3}
+                className="w-full rounded-xl border border-border px-3 py-2 text-sm outline-none focus:border-brand-red"
+              />
+              <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
+                <input
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  defaultValue={item.price ?? undefined}
+                  className="w-full rounded-xl border border-border px-3 py-2 text-sm outline-none focus:border-brand-red"
+                  placeholder="79.99"
+                />
+                <input
+                  name="tags"
+                  defaultValue={item.tags?.join(", ")}
+                  className="w-full rounded-xl border border-border px-3 py-2 text-sm outline-none focus:border-brand-red"
+                  placeholder="gluten-free, high protein"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  className="rounded-full bg-brand-green px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:bg-green-700"
+                >
+                  Save changes
+                </button>
+              </div>
+            </form>
           ))}
           {items.length === 0 && (
             <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted">

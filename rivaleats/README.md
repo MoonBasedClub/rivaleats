@@ -29,6 +29,7 @@ Place the provided logo at `public/rival-eats-logo.png` (used in the header). Us
 - `/confirmation` Success state after order submit.
 - `/contact` Contact/FAQ summary.
 - `/api/order` and `/api/subscribe` save to Supabase (service role) or return dry-run responses.
+- Admin auth: uses Supabase Auth. Mark your admin user by setting `user_metadata.role = "admin"` in Supabase (Auth > Users > Edit metadata). Only admins can access `/admin`.
 
 ## Deployment
 Deploy to Vercel. Ensure env vars are set and the `rival-eats-logo.png` lives in `/public` (plus update `favicon.ico` with the round badge).
