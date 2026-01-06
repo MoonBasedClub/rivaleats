@@ -30,7 +30,7 @@ export default async function AdminLayout({
           </h1>
           <p className="text-sm text-muted">
             Internal views for menu upkeep and order review. Access requires a
-            Supabase user with metadata role set to "admin".
+            Supabase user with metadata role set to &ldquo;admin&rdquo;.
           </p>
         </div>
         <div className="flex items-center gap-3">

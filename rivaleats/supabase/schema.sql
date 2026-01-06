@@ -1,99 +1,131 @@
--- Rival Eats Supabase schema (Phase 1)
+-- Rival Eats Supabase schema (Phase 1 / current)
 -- Run in Supabase SQL editor or CLI after replacing placeholders as needed.
 
 -- Menu items: used for the Menu page (public read).
 create table if not exists public.menu_items (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
+  id uuid not null default extensions.uuid_generate_v4 (),
   name text not null,
-  description text not null,
-  section text not null check (section in ('breakfast', 'dinner')),
-  price numeric(10,2),
-  image_url text,
-  tags text[]
-);
+  description text null,
+  price numeric(10, 2) null,
+  category public.menu_category_enum not null,
+  image_url text null,
+  is_active boolean not null default true,
+  created_at timestamp with time zone not null default now(),
+  constraint menu_items_pkey primary key (id)
+) tablespace pg_default;
 
--- Track when the menu was last published.
-create table if not exists public.menu_updates (
-  id uuid primary key default gen_random_uuid(),
-  published_at timestamptz not null default now(),
-  notes text
-);
+create index if not exists menu_items_category_active_idx
+  on public.menu_items using btree (category, is_active) tablespace pg_default;
+
+-- Analytics events (Phase 1 tracking).
+create table if not exists public.analytics_events (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  event_type text not null,
+  metadata jsonb null,
+  created_at timestamp with time zone not null default now(),
+  constraint analytics_events_pkey primary key (id)
+) tablespace pg_default;
 
 -- Weekly menu signup list.
-create table if not exists public.menu_signups (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz default now(),
+create table if not exists public.subscribers (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  first_name text not null,
+  last_name text not null,
   email text not null,
-  phone text,
-  contact_preference text not null default 'email',
-  sms_consent boolean default false,
-  source text default 'web'
-);
+  phone text null,
+  contact_preference public.contact_preference_enum not null default 'email'::contact_preference_enum,
+  sms_consent boolean not null default false,
+  created_at timestamp with time zone not null default now(),
+  constraint subscribers_pkey primary key (id)
+) tablespace pg_default;
 
--- Orders captured from the Order page.
+create unique index if not exists subscribers_email_idx
+  on public.subscribers using btree (lower(email)) tablespace pg_default;
+
+-- Orders captured from checkout (item-based ordering).
 create table if not exists public.orders (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz default now(),
-  full_name text not null,
+  id uuid not null default extensions.uuid_generate_v4 (),
+  customer_name text not null,
   email text not null,
-  phone text,
-  contact_preference text not null default 'email',
-  sms_consent boolean default false,
-  fulfillment text not null check (fulfillment in ('delivery', 'pickup')),
-  delivery_day text check (delivery_day in ('sunday', 'monday')),
+  phone text null,
+  contact_preference public.contact_preference_enum not null default 'email'::contact_preference_enum,
+  sms_consent boolean not null default false,
+  delivery_type public.delivery_type_enum not null,
+  address_line1 text null,
+  address_line2 text null,
+  city text null,
+  state text null,
+  zip text null,
+  delivery_day public.delivery_day_enum not null,
   time_window text not null,
-  address_line1 text,
-  address_line2 text,
-  city text,
-  state text,
-  postal_code text,
-  county text,
-  allergies text,
-  dietary_preferences text,
-  notes text,
-  base_price numeric(10,2) not null default 79.99,
-  delivery_fee numeric(10,2) not null default 0,
-  outside_zone_fee numeric(10,2) not null default 0,
+  allergies text[] null,
+  allergy_notes text null,
+  dietary_preferences text[] null,
+  spice_level public.spice_level_enum null,
+  notes text null,
+  cart_items jsonb not null default '[]'::jsonb,
+  package_price numeric(10, 2) not null default 0,
+  delivery_fee numeric(10, 2) not null default 0,
+  out_of_zone_fee numeric(10, 2) not null default 0,
   outside_zone_accepted boolean not null default false,
-  after_cutoff boolean default false,
-  schedule_next_window boolean default false,
-  submission_source text default 'web'
-);
+  total_price numeric(10, 2) not null default 0,
+  is_late_order boolean not null default false,
+  scheduled_week_start date not null,
+  submission_source text not null default 'web',
+  created_at timestamp with time zone not null default now(),
+  constraint orders_pkey primary key (id),
+  constraint orders_delivery_address_required check (
+    (
+      (delivery_type = 'pickup'::delivery_type_enum)
+      or (
+        (address_line1 is not null)
+        and (city is not null)
+        and (state is not null)
+        and (zip is not null)
+      )
+    )
+  )
+) tablespace pg_default;
 
--- Indexes for admin querying.
-create index if not exists idx_orders_created_at on public.orders(created_at desc);
-create index if not exists idx_menu_items_section on public.menu_items(section);
+create index if not exists orders_created_at_idx
+  on public.orders using btree (created_at) tablespace pg_default;
+
+create index if not exists orders_email_idx
+  on public.orders using btree (lower(email)) tablespace pg_default;
 
 -- Row Level Security
 alter table public.menu_items enable row level security;
-alter table public.menu_signups enable row level security;
+alter table public.subscribers enable row level security;
 alter table public.orders enable row level security;
 
 -- Policies
 create policy "Public read menu items" on public.menu_items
   for select using (true);
 
-create policy "Authenticated can manage menu" on public.menu_items
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+create policy "Admins can manage menu" on public.menu_items
+  for all using (
+    auth.role() = 'service_role'
+    or (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+  )
+  with check (
+    auth.role() = 'service_role'
+    or (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+  );
 
-create policy "Public can submit signups" on public.menu_signups
+create policy "Public can submit signups" on public.subscribers
   for insert with check (true);
 
-create policy "Authenticated can manage signups" on public.menu_signups
-  for all using (auth.role() = 'authenticated');
+create policy "Admins can manage signups" on public.subscribers
+  for all using (
+    auth.role() = 'service_role'
+    or (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+  );
 
 create policy "Public can submit orders" on public.orders
   for insert with check (true);
 
-create policy "Authenticated can read orders" on public.orders
-  for select using (auth.role() = 'authenticated');
-
--- Storage bucket for menu images (optional)
--- Execute once:
--- select storage.create_bucket('menu-images', public => true);
--- To limit writes to service role only:
--- select storage.set_bucket_public('menu-images', true);
--- create policy "Public read menu images" on storage.objects for select using (bucket_id = 'menu-images');
--- create policy "Service role writes menu images" on storage.objects for insert with check (bucket_id = 'menu-images' and auth.role() = 'service_role');
+create policy "Admins can read orders" on public.orders
+  for select using (
+    auth.role() = 'service_role'
+    or (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+  );

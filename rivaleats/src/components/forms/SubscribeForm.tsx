@@ -3,6 +3,8 @@
 import { FormEvent, useState } from "react";
 
 type SubscribePayload = {
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
   contactPreference: "email" | "sms" | "either";
@@ -10,6 +12,8 @@ type SubscribePayload = {
 };
 
 function validate(payload: SubscribePayload) {
+  if (!payload.firstName) return "First name is required.";
+  if (!payload.lastName) return "Last name is required.";
   if (!payload.email) return "Email is required.";
   if (payload.phone && !payload.smsConsent && payload.contactPreference !== "email") {
     return "Please consent to SMS if phone is provided and SMS is selected.";
@@ -18,6 +22,8 @@ function validate(payload: SubscribePayload) {
 }
 
 export function SubscribeForm({ compact = false }: { compact?: boolean }) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [contactPreference, setContactPreference] =
@@ -32,6 +38,8 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
     setMessage(null);
 
     const payload: SubscribePayload = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       email: email.trim(),
       phone: phone.trim() || undefined,
       contactPreference,
@@ -61,6 +69,8 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
 
       setStatus("success");
       setMessage("You’re on the list. We’ll send weekly menu updates.");
+      setFirstName("");
+      setLastName("");
       setEmail("");
       setPhone("");
       setContactPreference("email");
@@ -78,6 +88,30 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
       onSubmit={handleSubmit}
       className={`flex flex-col gap-3 ${compact ? "" : "rounded-2xl border border-border bg-white p-4 shadow-sm"}`}
     >
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <label className="flex-1 text-sm font-semibold text-charcoal">
+          First name
+          <input
+            type="text"
+            required
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="First name"
+            className="mt-1 w-full rounded-xl border border-border bg-cream px-3 py-2 text-sm text-charcoal outline-none transition focus:border-brand-red focus:bg-white"
+          />
+        </label>
+        <label className="flex-1 text-sm font-semibold text-charcoal">
+          Last name
+          <input
+            type="text"
+            required
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Last name"
+            className="mt-1 w-full rounded-xl border border-border bg-cream px-3 py-2 text-sm text-charcoal outline-none transition focus:border-brand-red focus:bg-white"
+          />
+        </label>
+      </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <label className="flex-1 text-sm font-semibold text-charcoal">
           Email

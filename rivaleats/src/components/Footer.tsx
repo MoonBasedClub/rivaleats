@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const footerLinks = [
   { href: "/menu", label: "Menu" },
-  { href: "/order", label: "Order" },
+  { href: "/checkout", label: "Checkout" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -15,10 +15,10 @@ export function Footer() {
             Rival Eats
           </p>
           <p className="text-sm text-[#d7d1c6]">
-            Bold weekly meals. Delivery & pickup across Broward.
+            Rival-Friendly Meals for Busy Weeks. Delivery & pickup across Broward.
           </p>
           <p className="text-xs uppercase tracking-[0.18em] text-[#b8b0a3]">
-            Sunday / Monday windows • $79.99 base package
+            Sunday / Monday windows - per-item ordering
           </p>
         </div>
         <div className="flex items-center gap-4 text-sm">

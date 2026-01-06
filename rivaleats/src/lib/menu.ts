@@ -83,9 +83,10 @@ export async function fetchMenuData(): Promise<MenuData> {
     const { data, error } = await client
       .from("menu_items")
       .select(
-        "id, name, description, section, price, image_url, tags, updated_at"
+        "id, name, description, category, price, image_url, created_at, is_active"
       )
-      .order("section", { ascending: true })
+      .eq("is_active", true)
+      .order("category", { ascending: true })
       .order("name", { ascending: true });
 
     if (error || !data) {
@@ -93,8 +94,19 @@ export async function fetchMenuData(): Promise<MenuData> {
       return sampleMenu;
     }
 
+    const mappedItems: MenuItem[] = data.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description ?? "",
+      section: item.category === "breakfast" ? "breakfast" : "dinner",
+      price: item.price ?? null,
+      image_url: item.image_url ?? null,
+      tags: null,
+      updated_at: item.created_at ?? null,
+    }));
+
     const mostRecent =
-      data
+      mappedItems
         .map((item) => item.updated_at)
         .filter(Boolean)
         .sort()
@@ -102,7 +114,7 @@ export async function fetchMenuData(): Promise<MenuData> {
 
     return {
       lastUpdated: mostRecent,
-      items: data,
+      items: mappedItems,
     };
   } catch (err) {
     console.error("Supabase menu fetch failed", err);

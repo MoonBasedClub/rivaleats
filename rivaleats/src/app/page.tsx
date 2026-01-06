@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SubscribeForm } from "@/components/forms/SubscribeForm";
 
 const highlights = [
-  { label: "Base package", value: "$79.99 / week" },
+  { label: "Menu pricing", value: "Per-item ordering" },
   { label: "Delivery windows", value: "Sunday / Monday" },
   { label: "Pickup option", value: "No delivery fee" },
   { label: "Delivery fee", value: "+$10 (Broward)" },
@@ -19,7 +19,7 @@ const steps = [
   },
   {
     title: "Checkout without the chaos",
-    body: "Submit the weekly package. We'll confirm, coordinate, and handle payment instructions.",
+    body: "Submit your cart. We'll confirm, coordinate, and handle payment instructions.",
   },
 ];
 
@@ -30,7 +30,7 @@ const faqs = [
   },
   {
     q: "Where do you deliver?",
-    a: "Broward is standard. Outside Broward may carry an additional charge; address check happens in the order form.",
+    a: "Broward is standard. Outside Broward may carry an additional charge; address check happens in checkout.",
   },
   {
     q: "What about payment?",
@@ -53,13 +53,13 @@ export default function Home() {
               Rival Eats brings the heat to your week.
             </h1>
             <p className="text-lg text-muted sm:text-xl">
-              Elevated meals, zero fuss. Lock in the weekly package, choose
-              delivery or pickup, and set your notesso every plate lands the way
-              you like it.
+              Elevated meals, zero fuss. Build your cart, choose delivery or
+              pickup, and set your notes so every plate lands the way you like
+              it.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href="/order"
+                href="/checkout"
                 className="inline-flex items-center justify-center rounded-full bg-brand-red px-6 py-3 text-base font-semibold text-white shadow-lg shadow-brand-red/25 transition hover:-translate-y-0.5 hover:bg-[#a70f19]"
               >
                 Order this week
@@ -93,7 +93,10 @@ export default function Home() {
               <ul className="mt-4 space-y-3 text-sm leading-relaxed text-[#dfd8ca]">
                 <li>- Delivery windows: Sunday or Monday (+$10 delivery)</li>
                 <li>- Pickup: skip the delivery fee</li>
-                <li>- Outside Broward? We'll flag an additional charge before you submit.</li>
+                <li>
+                  - Outside Broward? We&apos;ll flag an additional charge before you
+                  submit.
+                </li>
                 <li>- After Friday 7pm ET, we schedule your order for the next window.</li>
               </ul>
               <div className="mt-8 rounded-2xl bg-charcoal/70 p-4 text-sm text-[#f3e9d9]">
@@ -119,10 +122,10 @@ export default function Home() {
             </h2>
           </div>
           <Link
-            href="/order"
+            href="/checkout"
             className="hidden rounded-full border border-charcoal px-4 py-2 text-sm font-semibold text-charcoal transition hover:-translate-y-0.5 hover:bg-charcoal hover:text-cream sm:inline-flex"
           >
-            Start an order
+            Start checkout
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">

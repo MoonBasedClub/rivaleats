@@ -7,15 +7,15 @@ const faqs = [
   },
   {
     q: "Do you offer pickup?",
-    a: "Yes. Pickup avoids the $10 delivery fee. Select it in the order form and we’ll share pickup details.",
+    a: "Yes. Pickup avoids the $10 delivery fee. Select it in checkout and we'll share pickup details.",
   },
   {
     q: "What if I have allergies?",
-    a: "Add allergies and dietary preferences in the order form. We confirm before prep.",
+    a: "Add allergies and dietary preferences in each item edit. We confirm before prep.",
   },
   {
     q: "Where do you deliver?",
-    a: "Broward is standard. Outside Broward may carry an additional fee—address check is built into the order form.",
+    a: "Broward is standard. Outside Broward may carry an additional fee; address check is built into checkout.",
   },
 ];
 
@@ -42,14 +42,16 @@ export default function ContactPage() {
             <p className="display text-xl font-semibold text-charcoal">
               hello@rivaleats.com
             </p>
-            <p className="text-sm text-muted">Same-day responses during the week.</p>
+            <p className="text-sm text-muted">
+              Same-day responses during the week.
+            </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/order"
+              href="/checkout"
               className="inline-flex items-center justify-center rounded-full bg-brand-red px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-red/25 transition hover:-translate-y-0.5 hover:bg-[#a70f19]"
             >
-              Start an order
+              Start checkout
             </Link>
             <Link
               href="/menu"

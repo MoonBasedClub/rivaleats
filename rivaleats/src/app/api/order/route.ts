@@ -7,7 +7,7 @@ const orderSchema = z.object({
   fullName: z.string().min(2),
   email: z.string().email(),
   phone: z.string().optional(),
-  contactPreference: z.enum(["email", "phone", "either"]),
+  contactPreference: z.enum(["email", "phone", "either"]).optional(),
   smsConsent: z.boolean().optional(),
   fulfillment: z.enum(["delivery", "pickup"]),
   deliveryDay: z.enum(["sunday", "monday"]),
@@ -17,18 +17,66 @@ const orderSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   postalCode: z.string().optional(),
-  county: z.string().optional(),
-  allergies: z.string().optional(),
-  dietaryPreferences: z.string().optional(),
   notes: z.string().optional(),
-  basePrice: z.number(),
+  cartItems: z
+    .array(
+      z.object({
+        itemId: z.string(),
+        name: z.string(),
+        price: z.number(),
+        quantity: z.number().int().positive(),
+        notes: z.object({
+          allergies: z.string(),
+          dietaryPreferences: z.string(),
+          specialRequests: z.string(),
+        }),
+      })
+    )
+    .min(1),
+  subtotal: z.number(),
   deliveryFee: z.number(),
   outsideZoneFee: z.number(),
-  outsideZoneAccepted: z.boolean(),
+  outsideZoneAccepted: z.boolean().optional(),
   afterCutoff: z.boolean(),
   scheduleNextWindow: z.boolean(),
   submissionSource: z.string().optional(),
 });
+
+function getEasternNow() {
+  const now = new Date();
+  const estString = now.toLocaleString("en-US", { timeZone: "America/New_York" });
+  return new Date(estString);
+}
+
+function getScheduledWeekStart(
+  deliveryDay: "sunday" | "monday",
+  afterCutoff: boolean,
+  scheduleNextWindow: boolean
+) {
+  const nowET = getEasternNow();
+  const day = nowET.getDay();
+  const daysUntilSunday = (7 - day) % 7;
+  const sunday = new Date(nowET);
+  sunday.setDate(nowET.getDate() + daysUntilSunday);
+
+  if (afterCutoff && scheduleNextWindow) {
+    sunday.setDate(sunday.getDate() + 7);
+  }
+
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const scheduledWeekStart = formatter.format(sunday);
+
+  if (deliveryDay === "monday") {
+    return scheduledWeekStart;
+  }
+
+  return scheduledWeekStart;
+}
 
 export async function POST(request: Request) {
   const json = await request.json().catch(() => null);
@@ -45,6 +93,13 @@ export async function POST(request: Request) {
   }
 
   const order = parsed.data;
+  const totalPrice =
+    order.subtotal + order.deliveryFee + order.outsideZoneFee;
+  const scheduledWeekStart = getScheduledWeekStart(
+    order.deliveryDay,
+    order.afterCutoff,
+    order.scheduleNextWindow
+  );
 
   if (
     order.fulfillment === "delivery" &&
@@ -76,29 +131,28 @@ export async function POST(request: Request) {
   }
 
   const { error } = await supabase.from("orders").insert({
-    full_name: order.fullName,
+    customer_name: order.fullName,
     email: order.email,
     phone: order.phone,
-    contact_preference: order.contactPreference,
+    contact_preference: order.contactPreference ?? "email",
     sms_consent: order.smsConsent ?? false,
-    fulfillment: order.fulfillment,
+    delivery_type: order.fulfillment,
     delivery_day: order.deliveryDay,
     time_window: order.timeWindow,
     address_line1: order.addressLine1,
     address_line2: order.addressLine2,
     city: order.city,
     state: order.state,
-    postal_code: order.postalCode,
-    county: order.county,
-    allergies: order.allergies,
-    dietary_preferences: order.dietaryPreferences,
+    zip: order.postalCode,
     notes: order.notes,
-    base_price: order.basePrice,
+    package_price: order.subtotal,
     delivery_fee: order.deliveryFee,
-    outside_zone_fee: order.outsideZoneFee,
-    outside_zone_accepted: order.outsideZoneAccepted,
-    after_cutoff: order.afterCutoff,
-    schedule_next_window: order.scheduleNextWindow,
+    out_of_zone_fee: order.outsideZoneFee,
+    outside_zone_accepted: order.outsideZoneAccepted ?? false,
+    total_price: totalPrice,
+    is_late_order: order.afterCutoff,
+    scheduled_week_start: scheduledWeekStart,
+    cart_items: order.cartItems,
     submission_source: order.submissionSource ?? "web",
   });
 

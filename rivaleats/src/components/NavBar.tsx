@@ -4,7 +4,7 @@ import { LogoMark } from "./LogoMark";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/menu", label: "Menu" },
-  { href: "/order", label: "Order" },
+  { href: "/checkout", label: "Checkout" },
   { href: "/contact", label: "Contact / FAQ" },
 ];
 
@@ -21,7 +21,7 @@ export function NavBar() {
               Rival Eats
             </span>
             <span className="text-xs uppercase tracking-[0.22em] text-muted">
-              Meal Experience
+              Home-cooked, rival-worthy meals
             </span>
           </div>
         </Link>
@@ -37,7 +37,7 @@ export function NavBar() {
           ))}
         </nav>
         <Link
-          href="/order"
+          href="/checkout"
           className="hidden rounded-full bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brand-red/20 transition hover:-translate-y-0.5 hover:bg-[#a70f19] sm:inline-flex"
         >
           Order now

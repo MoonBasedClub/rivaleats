@@ -4,6 +4,8 @@ import { getAnonClient, getServiceRoleClient } from "@/lib/supabase/server";
 import { logApiEvent } from "@/lib/monitoring";
 
 const subscribeSchema = z.object({
+  firstName: z.string().trim().min(1),
+  lastName: z.string().trim().min(1),
   email: z.string().email(),
   phone: z.string().optional(),
   contactPreference: z.enum(["email", "sms", "either"]).default("email"),
@@ -52,6 +54,8 @@ export async function POST(request: Request) {
   }
 
   const { error } = await supabase.from("menu_signups").insert({
+    first_name: data.firstName,
+    last_name: data.lastName,
     email: data.email,
     phone: data.phone,
     contact_preference: data.contactPreference,

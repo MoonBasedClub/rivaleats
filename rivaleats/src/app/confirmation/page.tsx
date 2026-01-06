@@ -16,13 +16,13 @@ export default function ConfirmationPage({ searchParams }: ConfirmationPageProps
       </h1>
       <p className="text-sm text-muted">
         We received your order. Expect a follow-up with payment instructions and
-        exact timing. If you don’t see an email within a few minutes, check spam
-        or reach out.
+        exact timing. If you don&apos;t see an email within a few minutes, check
+        spam or reach out.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-cream p-4">
           <p className="text-xs uppercase tracking-[0.18em] text-muted">
-            Package total
+            Order total
           </p>
           <p className="display text-2xl font-semibold text-charcoal">
             {total ? `$${total}` : "Pending"}
